@@ -54,6 +54,9 @@ th,td{padding:7px 12px;text-align:left;border-bottom:1px solid var(--line);white
 th{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:600;background:var(--code-bg)}
 td.num,th.num{text-align:right}
 tr:last-child td{border-bottom:0}
+.panel th,.panel td{padding:7px 10px}
+.panel th{white-space:normal;vertical-align:bottom}
+@media (max-width:480px){.panel table{font-size:12.5px}.panel th,.panel td{padding:6px 5px}.panel th{font-size:10.5px;letter-spacing:.02em}}
 /* playground */
 .play{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:16px;align-items:start}
 @media (max-width:820px){.play{grid-template-columns:minmax(0,1fr)}}
@@ -306,7 +309,7 @@ function buildPanels(){
       if (!db) { chart.textContent = "—"; return; }
       try {
         const {columns, rows} = run(p.sql);
-        if (p.table) { chart.textContent = ""; chart.style.minHeight = "0"; chart.append(tableFrom(columns, rows, {avg_gpa:2, avg_sleep:1, avg_daily_hours:1})); }
+        if (p.table) { chart.textContent = ""; chart.style.minHeight = "0"; const tw = tableFrom(columns, rows, {avg_gpa:2, avg_sleep:1, avg_daily_hours:1}); tw.querySelectorAll("th").forEach(th => th.textContent = th.textContent.replace(/_/g, " ")); chart.append(tw); }
         else barChart(chart, rows.map(r => cleanLabel(r[p.x])), rows.map(r => r[p.y]), {dec:p.dec, unit:p.unit, dim:p.grid==="grid-flat", aria:p.title});
       } catch(e) { chart.textContent = "Query failed: " + e.message; }
     };
