@@ -80,6 +80,15 @@ select{font:inherit;font-size:13px;padding:4px 8px;border-radius:7px;border:1px 
 .col span{color:var(--muted);font-size:11px}
 .order{font-family:var(--mono);font-size:12px;color:var(--muted);background:var(--code-bg);border-radius:6px;padding:8px 10px;line-height:1.6}
 footer{font-size:12.5px;color:var(--muted)}
+.open-pg{margin-top:16px}
+dialog.pg{width:min(1180px,calc(100vw - 32px));max-width:none;max-height:calc(100dvh - 32px);box-sizing:border-box;padding:0;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);overflow:auto;overscroll-behavior:contain}
+dialog.pg::backdrop{background:rgba(10,18,24,.55)}
+.pg-inner{padding:20px;display:flex;flex-direction:column;gap:16px}
+.pg-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.pg-top p{margin:4px 0 0;color:var(--muted);font-size:14px}
+.pg-close{flex:none;font-size:20px;line-height:1;width:36px;height:36px;padding:0}
+body.pg-open{overflow:hidden}
+@media (max-width:600px){dialog.pg{width:100vw;max-height:100dvh;height:100dvh;border-radius:0;border:0}.pg-inner{padding:16px}}
 @media (prefers-reduced-motion:no-preference){.chart rect.bar{transition:height .4s ease,y .4s ease}}
 </style>
 
@@ -92,6 +101,7 @@ footer{font-size:12.5px;color:var(--muted)}
       <span class="chip">4,500 rows · 16 columns</span>
       <span class="status" id="status">Loading the SQL engine…</span>
     </div>
+    <button type="button" class="primary open-pg" id="open-pg">Open SQL playground</button>
   </header>
 
   <section class="section-head">
@@ -106,10 +116,15 @@ footer{font-size:12.5px;color:var(--muted)}
   </section>
   <div class="grid" id="grid-flat"></div>
 
-  <section class="section-head" id="playground">
-    <h2>SQL playground</h2>
-    <p>Write any query against the <code>students</code> table. Press <strong>Run</strong> or Ctrl/⌘ + Enter. Click a column name on the right to insert it.</p>
-  </section>
+  <dialog class="pg" id="playground" aria-labelledby="pg-title">
+  <div class="pg-inner">
+  <div class="pg-top">
+    <div>
+      <h2 id="pg-title">SQL playground</h2>
+      <p>Write any query against the <code>students</code> table. Press <strong>Run</strong> or Ctrl/⌘ + Enter. Click a column name on the right to insert it.</p>
+    </div>
+    <button type="button" class="pg-close" id="close-pg" aria-label="Close playground">×</button>
+  </div>
   <div class="play">
     <div class="editor">
       <div class="examples" id="examples"></div>
@@ -127,6 +142,8 @@ footer{font-size:12.5px;color:var(--muted)}
       <div class="order">late_night: 1 = yes, 0 = no<br>gpa: 85 blank (NULL)<br>stress_score: 46 blank (NULL)</div>
     </aside>
   </div>
+  </div>
+  </dialog>
 
   <footer>Data: “Social media impact on life” dataset (4,500 students), loaded into SQLite via sql.js. Queries written step by step by Taiyara.</footer>
 </div>
@@ -302,7 +319,7 @@ function buildPanels(){
     const showBtn = el("button",{type:"button",text:"Show SQL","aria-expanded":"false"});
     showBtn.addEventListener("click", () => { pre.hidden = !pre.hidden; showBtn.textContent = pre.hidden ? "Show SQL" : "Hide SQL"; showBtn.setAttribute("aria-expanded", String(!pre.hidden)); });
     const editBtn = el("button",{type:"button",text:"Edit in playground"});
-    editBtn.addEventListener("click", () => { $("sql").value = p.sql; runEditor(); $("playground").scrollIntoView({behavior:"smooth"}); });
+    editBtn.addEventListener("click", () => { $("sql").value = p.sql; openPg(); runEditor(); });
     const panel = el("article",{class:"panel"}, el("h3",{text:p.title}), el("p",{class:"take",text:p.take}), chart, el("div",{class:"actions"}, showBtn, editBtn), pre);
     $(p.grid).append(panel);
     const draw = () => {
@@ -362,6 +379,17 @@ function runEditor(){
   }
 }
 let editorChart = null;
+
+function openPg(){
+  const d = $("playground");
+  if (!d.open) { d.showModal(); document.body.classList.add("pg-open"); }
+  if (editorChart) editorChart();
+  $("sql").focus();
+}
+$("open-pg").addEventListener("click", openPg);
+$("close-pg").addEventListener("click", () => $("playground").close());
+$("playground").addEventListener("close", () => document.body.classList.remove("pg-open"));
+$("playground").addEventListener("click", e => { if (e.target === e.currentTarget) e.currentTarget.close(); });
 
 function buildPlayground(){
   EXAMPLES.forEach(([name, sql]) => {
