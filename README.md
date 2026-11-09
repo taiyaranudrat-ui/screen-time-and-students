@@ -1,5 +1,7 @@
 # Mental Health Outcomes by Social Media Use Among Students
 
+**[View the live dashboard](https://taiyaranudrat-ui.github.io/screen-time-and-students/)**
+
 ## The data
 4,500 students (high school to postgraduate), covering social media use, sleep,
 GPA, stress and mental health.
